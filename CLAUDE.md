@@ -288,3 +288,38 @@ npm run scrape
 - Calculated ratings show 2+ decimal precision
 - PDF exports are professional and readable
 - Stash + Lode always visually highlighted
+
+---
+
+## Git Commit Conventions
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification:
+
+**Format:**
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+**Common types:**
+- `feat:` New features
+- `fix:` Bug fixes
+- `docs:` Documentation only
+- `refactor:` Code restructuring without behavior change
+- `test:` Test additions or modifications
+- `chore:` Routine maintenance and updates
+- `perf:` Performance improvements
+
+**Best practices:**
+- Use imperative mood: "add feature" not "added feature"
+- Keep subject line ≤ 50 characters
+- Separate subject from body with blank line
+- Use body to explain "what and why" vs "how"
+- No period at end of subject line
+- First commit can omit type prefix (e.g., "Initial revision of Rankd...")
+
+**Privacy note:**
+- Avoid explicit references to data sources in commit messages to maintain discretion
