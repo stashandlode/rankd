@@ -88,21 +88,25 @@ router.post('/import', requireAdmin, async (req: Request, res: Response) => {
         ? parseDateText(review.dateText, extractedAt)
         : null;
 
-      await prisma.review.create({
-        data: {
-          reviewId: review.reviewId,
-          placeId: business.placeId,
-          author: review.author || null,
-          rating: review.rating,
-          reviewText: review.text || null,
-          reviewDate,
-          hasResponse: review.hasBusinessResponse || false,
-          responseText: null,
-          scrapedAt: extractedAt,
-        },
-      });
-
-      imported++;
+      try {
+        await prisma.review.create({
+          data: {
+            reviewId: review.reviewId,
+            placeId: business.placeId,
+            author: review.author || null,
+            rating: review.rating,
+            reviewText: review.text || null,
+            reviewDate,
+            hasResponse: review.hasBusinessResponse || false,
+            responseText: null,
+            scrapedAt: extractedAt,
+          },
+        });
+        imported++;
+      } catch (err) {
+        console.error(`Failed to import review ${review.reviewId}:`, err);
+        skipped++;
+      }
     }
 
     // Recalculate metadata

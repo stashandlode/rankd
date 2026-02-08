@@ -28,7 +28,7 @@ async function buildRankings(placeIds?: string[]): Promise<CompanyRanking[]> {
     if (reviews.length === 0) continue;
 
     const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-    const calculatedAvg = parseFloat((totalRating / reviews.length).toFixed(2));
+    const calculatedAvg = parseFloat((totalRating / reviews.length).toFixed(5));
 
     // Rating distribution
     const dist: Record<number, RatingBucket> = {};
@@ -47,7 +47,7 @@ async function buildRankings(placeIds?: string[]): Promise<CompanyRanking[]> {
     let recentTrend = 0;
     if (recentReviews.length > 0) {
       const recentAvg = recentReviews.reduce((sum, r) => sum + r.rating, 0) / recentReviews.length;
-      recentTrend = parseFloat((recentAvg - calculatedAvg).toFixed(2));
+      recentTrend = parseFloat((recentAvg - calculatedAvg).toFixed(5));
     }
 
     // Review velocity (reviews/month over last 3 months)
@@ -75,9 +75,8 @@ async function buildRankings(placeIds?: string[]): Promise<CompanyRanking[]> {
 
   // Sort: by calculated average desc, then review count desc as tiebreaker
   rankings.sort((a, b) => {
-    if (Math.abs(a.calculatedAvg - b.calculatedAvg) >= 0.01) {
-      return b.calculatedAvg - a.calculatedAvg;
-    }
+    const diff = b.calculatedAvg - a.calculatedAvg;
+    if (diff !== 0) return diff;
     return b.reviewCount - a.reviewCount;
   });
 
