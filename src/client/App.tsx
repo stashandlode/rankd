@@ -4,6 +4,7 @@ import { useSession } from './hooks/useAuth';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import ImportPage from './pages/ImportPage';
+import CompaniesPage from './pages/CompaniesPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,7 +31,7 @@ function AuthGate() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<Placeholder title="Comparisons" />} />
-        <Route path="/companies" element={<Placeholder title="Companies" />} />
+        <Route path="/companies" element={<CompaniesPage />} />
         <Route path="/import" element={<ImportPage />} />
         <Route path="/snapshots" element={<Placeholder title="History" />} />
         <Route path="/users" element={<Placeholder title="Users" />} />
