@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("user") // "admin" | "user"
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Company {
+  placeId      String   @id @map("place_id")
+  name         String
+  url          String?
+  isOurCompany Boolean  @default(false) @map("is_our_company")
+  services     String?  // JSON array: ["Removals", "Self-Storage", "Mobile Storage"]
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  reviews  Review[]
+  metadata ReviewMetadata?
+
+  @@map("companies")
+}
+
+model CompanyGroup {
+  id         Int      @id @default(autoincrement())
+  name       String
+  companyIds String?  @map("company_ids") // JSON array of place_id values
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("company_groups")
+}
+
+model Review {
+  reviewId     String   @id @map("review_id")
+  placeId      String   @map("place_id")
+  author       String?
+  rating       Int
+  reviewText   String?  @map("review_text")
+  reviewDate   DateTime? @map("review_date")
+  hasResponse  Boolean  @default(false) @map("has_response")
+  responseText String?  @map("response_text")
+  scrapedAt    DateTime @default(now()) @map("scraped_at")
+
+  company Company @relation(fields: [placeId], references: [placeId], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model ReviewMetadata {
+  placeId        String   @id @map("place_id")
+  totalReviews   Int?     @map("total_reviews")
+  scrapedReviews Int?     @map("scraped_reviews")
+  calculatedAvg  Float?   @map("calculated_avg")
+  lastScraped    DateTime? @map("last_scraped")
+
+  company Company @relation(fields: [placeId], references: [placeId], onDelete: Cascade)
+
+  @@map("review_metadata")
+}
+
+model ComparisonSnapshot {
+  id             Int      @id @default(autoincrement())
+  comparisonName String   @map("comparison_name")
+  rankings       String   // JSON: full comparison data
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("comparison_snapshots")
+}
