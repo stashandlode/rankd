@@ -15,8 +15,9 @@ const col = createColumnHelper<CompanyRanking>();
 
 function RatingBar({ dist }: { dist: CompanyRanking['ratingDistribution'] }) {
   const bars = [5, 4, 3, 2, 1] as const;
+  const tooltip = bars.map((s) => `${s}★: ${dist[s].count} (${dist[s].percent}%)`).join('\n');
   return (
-    <div className="flex flex-col gap-0.5 w-28">
+    <div className="flex flex-col gap-0.5 w-28" title={tooltip}>
       {bars.map((star) => (
         <div key={star} className="flex items-center gap-1">
           <span className="text-[10px] text-gray-400 w-3 text-right">{star}</span>
