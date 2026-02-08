@@ -67,6 +67,13 @@ The extracted JSON file will look like this:
     "url": "https://www.google.com/maps/...",
     "extractedFrom": "Google Maps - Browser Console"
   },
+  "metrics": {
+    "calculatedAverage": 4.37,
+    "totalExtracted": 235,
+    "googleReviewCount": 247,
+    "missingReviews": 12,
+    "missingPercentage": 4.9
+  },
   "reviews": [
     {
       "reviewId": "abc123xyz",
@@ -79,10 +86,9 @@ The extracted JSON file will look like this:
     }
   ],
   "metadata": {
-    "totalExtracted": 247,
     "extractedAt": "2026-01-28T10:30:00.000Z",
     "extractionMethod": "browser-console",
-    "version": "1.0"
+    "version": "1.1"
   }
 }
 ```
@@ -123,20 +129,20 @@ The extracted JSON file will look like this:
 
 **Solutions:**
 1. Check the console for error messages (red text)
-2. The data is also copied to your clipboard - paste it into a text editor and save as `.json`
-3. Check browser download settings/permissions
+2. Check browser download settings/permissions
+3. Try running the script again after refreshing the page
 
 ### Google Maps Looks Different
 
 **Issue:** Google Maps UI varies by region and device
 
 **Solution:**
-The script tries multiple selectors to handle different versions. If it still fails:
+The script tries multiple selectors for individual fields (author, text, date). If it still fails:
 1. Right-click on any review
 2. Select "Inspect"
 3. Find the parent `<div>` that wraps the entire review
 4. Note the class names or data attributes
-5. Update the `possibleSelectors` array in the script
+5. Update the review container selector (`div.jftiEf`) and field selectors in the script
 
 ---
 
@@ -152,8 +158,8 @@ If Google updates their UI and the script breaks, here's how to fix it:
 
 2. **Update Script**
    - Open `extract-reviews-console.js`
-   - Find the `possibleSelectors` array
-   - Add the new selector at the top of the array
+   - Find the main review selector: `document.querySelectorAll('div.jftiEf')`
+   - Replace `div.jftiEf` with the new selector class
 
 3. **Update Individual Field Selectors**
    - Author name: Look for the element containing the reviewer's name
@@ -200,7 +206,6 @@ Once you've extracted reviews for all competitors:
 
 2. **Import into Rankd**
    - Log into Rankd application
-   - Create a competitor set
    - Use the import feature to upload all JSON files
 
 3. **Verify Import**

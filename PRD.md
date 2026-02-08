@@ -53,8 +53,8 @@ Rankd scrapes ALL individual reviews for each competitor to calculate precise av
 ### Must Have (MVP - 1-2 Weeks)
 
 **Authentication & Settings**
-1. As a team member, I want to log in with a password to access the tool
-2. As an admin user, I want to log in with a password to access the tool and, if necessary, modify settings
+1. As a team member, I want to log in with my username and password to access the tool
+2. As an admin user, I want to log in with my username and password to access the tool and manage settings and users
 3. As an admin user, I want to mark "Stash + Lode Storage" as our company so it's automatically highlighted in all rankings
 
 **Company & Group Management**
@@ -64,37 +64,36 @@ Rankd scrapes ALL individual reviews for each competitor to calculate precise av
 7. As a user, I want to view comparisons by service type OR by named group
 
 **Data & Metrics**
-7. As a user, I want to see calculated average ratings with 2+ decimal precision so I can differentiate similar competitors
-8. As a user, I want to see review count as a credibility indicator
-9. As a user, I want to see rating distribution (count and % of 5★, 4★, 3★, 2★, 1★)
-10. As a user, I want to see recent trend (last 3, 6, 12 months vs overall average) to know if ratings are improving/declining
-11. As a user, I want to see review velocity (reviews/month) to understand engagement levels
-12. As a user, I want to see response rate to know which competitors engage with reviews
+8. As a user, I want to see calculated average ratings with 2+ decimal precision so I can differentiate similar competitors
+9. As a user, I want to see review count as a credibility indicator
+10. As a user, I want to see rating distribution (count and % of 5★, 4★, 3★, 2★, 1★)
+11. As a user, I want to see recent trend (last 3 months vs overall average) to know if ratings are improving/declining
+12. As a user, I want to see review velocity (reviews/month) to understand engagement levels
+13. As a user, I want to see response rate to know which competitors engage with reviews
 
 **Rankings & Comparison**
-8. As a user, I want companies automatically ranked by calculated average (with review count as tiebreaker)
-9. As a user, I want Stash + Lode visually highlighted so I can quickly see our position
-10. As a user, I want a single dropdown to select comparison type (by service filter OR by named group)
-11. As a user, I want the ability to reorder ranking based on any of the metrics in the table
+14. As a user, I want companies automatically ranked by calculated average (with review count as tiebreaker)
+15. As a user, I want Stash + Lode visually highlighted so I can quickly see our position
+16. As a user, I want a single dropdown to select comparison type (by service filter OR by named group)
+17. As a user, I want the ability to reorder ranking based on any of the metrics in the table
 
 **Historical Tracking**
-11. As a user, I want the system to automatically refresh data weekly so information stays current
-12. As a user, I want to view saved snapshots so I can see how rankings have changed over time
+18. As a user, I want the system to automatically refresh data weekly so information stays current
+19. As a user, I want to view saved snapshots so I can see how rankings have changed over time
 
 **Reporting**
-13. As a user, I want to export comparisons to PDF for management meetings
-14. As a user, I want PDFs to be clean and professional, including ANL logo for branding purposes
+20. As a user, I want to export comparisons to PDF for management meetings
+21. As a user, I want PDFs to be clean and professional for management meetings
 
 ### Should Have (V2 - Post-MVP)
-20. Timeline/chart view showing ranking changes over time
-21. Individual user accounts (instead of shared password)
-22. Email alerts when rankings change significantly
+22. Timeline/chart view showing ranking changes over time
+23. Email alerts when rankings change significantly
 
 ### Nice to Have (Future)
-23. Sentiment analysis of recent reviews
-24. Word cloud analysis of all reviews
-25. Competitor insights dashboard
-26. Excel/CSV export for custom analysis
+24. Sentiment analysis of recent reviews
+25. Word cloud analysis of all reviews
+26. Competitor insights dashboard
+27. Excel/CSV export for custom analysis
 
 ---
 
@@ -102,14 +101,14 @@ Rankd scrapes ALL individual reviews for each competitor to calculate precise av
 
 ### 5.1 Authentication
 
-**Simple Shared Password**
+**Individual User Accounts**
 
-- Usernames and passwords for all basic team members (2-5 people)
-- Single username and password for an admin user (1 person)
+- Each team member has their own username and password
+- Role-based access: `admin` (manage users, import data, modify settings) vs `user` (read-only comparisons)
 - Passwords stored securely (bcrypt hashing)
 - Session persistence (stay logged in)
-- No user registration needed (users added by admin)
-- Admin can reset password if needed
+- No self-registration — admin creates user accounts
+- Admin can reset passwords if needed
 
 ---
 
@@ -130,7 +129,7 @@ Rankd scrapes ALL individual reviews for each competitor to calculate precise av
 - Each company has a `services` attribute (JSON array)
 - Services: ["Removals", "Self-Storage", "Mobile Storage"]
 - Companies can offer multiple services (e.g., both Removals and Self-Storage)
-- Service types set when company is first imported, editable in company settings
+- Service types editable after company is imported (import does not include service types)
 
 **Named Company Groups** (Optional Manual Curation)
 - Create custom groups with names like "Primary Competitors", "Melbourne Top 20"
@@ -142,7 +141,7 @@ Rankd scrapes ALL individual reviews for each competitor to calculate precise av
 **Data Structure:**
 ```
 CompanyGroup {
-  id: UUID
+  id: INTEGER (PK, autoincrement)
   name: string  // "Primary Competitors", "Melbourne Top 20"
   company_ids: string[]  // Array of place_id values
   createdAt: timestamp
@@ -153,7 +152,7 @@ Company {
   name: string
   url: string
   is_our_company: boolean
-  services: string[]  // ["Removals", "Self-Storage"]
+  services: string[]  // ["Removals", "Self-Storage", "Mobile Storage"]
   createdAt: timestamp
 }
 ```
@@ -179,13 +178,16 @@ Process:
 
 **Estimated Time:** 2-3 minutes per company, ~30-60 minutes for 20 companies
 
-**Extraction Script Output:**
+**Extraction Script Output** (matches `scripts/extract-reviews-console.js`):
 ```json
 {
-  "placeId": "ChIJ...",
-  "businessName": "Company Name",
-  "totalReviews": 247,
-  "extractedAt": "2026-01-28T10:30:00Z",
+  "business": {
+    "name": "Company Name",
+    "overallRating": 4.5,
+    "totalReviews": 247,
+    "placeId": "ChIJ...",
+    "url": "https://www.google.com/maps/place/..."
+  },
   "reviews": [
     {
       "reviewId": "unique-id-or-hash",
@@ -193,9 +195,15 @@ Process:
       "rating": 5,
       "text": "Great service...",
       "dateText": "2 weeks ago",
-      "hasBusinessResponse": true
+      "hasBusinessResponse": true,
+      "extractedAt": "2026-01-28T10:30:00Z"
     }
-  ]
+  ],
+  "metadata": {
+    "extractedAt": "2026-01-28T10:30:00Z",
+    "extractionMethod": "browser-console",
+    "version": "1.1"
+  }
 }
 ```
 
@@ -204,8 +212,8 @@ Process:
 
 Process:
 1. Weekly cron job triggers Puppeteer script
-2. For each competitor set:
-   - Navigate to each company's Google Maps reviews
+2. For each tracked company:
+   - Navigate to the company's Google Maps reviews
    - Sort by newest
    - Scroll to load first 1-2 pages only (~10-20 reviews)
    - Extract reviews and check review IDs against database
@@ -335,7 +343,8 @@ companies.sort((a, b) => {
 
 **Interactions:**
 - Single comparison selector dropdown with dividers:
-  - Top section: Service type filters ("All Companies", "Removals Only", "Self-Storage Only", "Mobile Storage Only", "Removals + Storage")
+  - Top section: Service type filters ("All Companies", "Removals", "Self-Storage", "Mobile Storage", "Removals + Storage")
+    - Note: "Removals + Storage" shows companies offering BOTH removals and storage services
   - Bottom section: Named groups ("Primary Competitors", "Melbourne Top 20", etc.)
 - Sort by any column (override default ranking)
 - Click company name → open Google Maps page
@@ -367,16 +376,16 @@ companies.sort((a, b) => {
 **Data Structure:**
 ```
 ComparisonSnapshot {
-  id: UUID
-  competitorSetId: UUID
+  id: INTEGER
+  comparisonName: string       // e.g., "All Companies", "Self-Storage Only"
   createdAt: timestamp
-  data: {
+  rankings: JSON {             // Full comparison data
     companies: [
       {
         placeId: string
         name: string
         rank: number
-        calculatedRating: number
+        calculatedAvg: number
         reviewCount: number
         ratingDistribution: object
         recentTrend: number
@@ -400,8 +409,8 @@ ComparisonSnapshot {
 
 **Process:**
 1. Cron job triggers Puppeteer script
-2. For each active competitor set:
-   - Scrape most recent reviews for all companies (first 1-2 pages, ~10-20 reviews)
+2. For each tracked company:
+   - Scrape most recent reviews (first 1-2 pages, ~10-20 reviews)
    - Check each review ID against existing database records
    - Store only new reviews (IDs not in database)
    - Stop early if consecutive reviews already exist (efficiency optimization)
@@ -423,7 +432,7 @@ ComparisonSnapshot {
 **Generate Professional PDF Report**
 
 **Content:**
-1. Header: "Competitor Comparison - [Set Name]"
+1. Header: "Competitor Comparison - [Filter/Group Name]"
 2. Date generated
 3. Ranked table with all companies and metrics
 4. Stash + Lode highlighted in table
@@ -433,7 +442,7 @@ ComparisonSnapshot {
 - Clean, professional layout
 - Readable fonts and spacing
 - No branding/logo needed for MVP (can add in V2)
-- File name: `rankd-comparison-[set-name]-YYYY-MM-DD.pdf`
+- File name: `rankd-comparison-[filter-or-group]-YYYY-MM-DD.pdf`
 
 **Technical:**
 - Server-side generation (Puppeteer or react-pdf)
@@ -492,7 +501,7 @@ ComparisonSnapshot {
 1. User logs in with credentials
 2. User manually extracts reviews for 20 companies via browser console script
 3. User imports JSON files via UI
-4. System creates company records with service type tags from imported data
+4. System creates company records from imported data
 5. User marks "Stash + Lode Storage" as our company in Settings
 6. User optionally creates named groups (e.g., "Primary Competitors")
 7. System calculates metrics and displays initial comparison
@@ -523,41 +532,33 @@ ComparisonSnapshot {
 ```
 1. Visit app URL
    ↓
-2. Login with shared password
+2. Login with username and password
    ↓
 3. First-time setup prompt
    ↓
-4. Go to Settings → Search & select "Stash + Lode Storage" as our company
+4. Go to Settings → Select "Stash + Lode Storage" from imported companies as our company
    ↓
 5. Redirected to Dashboard (empty state)
 ```
 
-### 7.2 Create Competitor Set & Initial Data Collection
+### 7.2 Import Companies & Initial Data Collection
 
 ```
-1. Click "Create New Competitor Set"
+1. Navigate to "Import" page
    ↓
-2. Enter set name (e.g., "Sydney Storage Competitors")
+2. Instructions shown: "Extract reviews for each company using browser console script"
    ↓
-3. Search & select first company (autocomplete)
+3. User manually extracts reviews for each competitor (~2-3 min per company)
    ↓
-4. Choose service type for company (dropdown)
+4. User uploads JSON files for each company
    ↓
-5. Repeat for 11-20 companies
+5. System creates company records and stores reviews
    ↓
-6. Click "Save Set"
+6. User edits each company to set service type tags (Removals, Self-Storage, etc.)
    ↓
-7. Redirected to "Import Initial Data" page
+7. User optionally creates named groups (e.g., "Primary Competitors")
    ↓
-8. Instructions shown: "Extract reviews for each company using browser console"
-   ↓
-9. User manually extracts reviews (browser console script)
-   ↓
-10. User uploads JSON files for each company
-   ↓
-11. System processes and stores reviews
-   ↓
-12. Redirected to Comparison View with initial rankings
+8. Navigate to Comparison View → select filter or group to see rankings
 ```
 
 ### 7.3 Monthly Competitive Review
@@ -565,21 +566,17 @@ ComparisonSnapshot {
 ```
 1. User logs in
    ↓
-2. Dashboard shows competitor sets with "Last Updated" dates
+2. Comparison view loads with all companies (data from last weekly refresh)
    ↓
-3. User clicks on a competitor set
+3. User selects filter (e.g., "Self-Storage Only") or named group from dropdown
    ↓
-4. Comparison view loads (shows rankings from last weekly refresh)
+4. User reviews Stash + Lode's position and metrics
    ↓
-5. User reviews Stash + Lode's position and metrics
+5. User clicks "Export PDF"
    ↓
-6. User filters by "Self-Storage" to compare similar services
+6. PDF generates and downloads
    ↓
-7. User clicks "Export PDF"
-   ↓
-8. PDF generates and downloads
-   ↓
-9. User presents PDF in team meeting
+7. User presents PDF in team meeting
 ```
 
 ### 7.4 View Historical Changes
@@ -629,9 +626,8 @@ ComparisonSnapshot {
 
 ### 9.1 Performance
 - Comparison view loads within 10 seconds
-- Search autocomplete responds within 500ms
 - PDF generation completes within 30 seconds
-- Weekly refresh completes within 1 hour (for all sets)
+- Weekly refresh completes within 1 hour (for all companies)
 
 ### 9.2 Reliability
 - 99% uptime for web application
@@ -647,8 +643,8 @@ ComparisonSnapshot {
 
 ### 9.4 Cost Optimization
 - Target: $0/month for data collection (web scraping)
-- Hosting: Vercel free tier or <$20/month
-- Database: Free tier (Supabase) or <$10/month
+- Hosting: Railway container (<$20/month)
+- Database: SQLite on disk (no separate DB cost)
 - **Total Target:** <$50/month
 
 ### 9.5 Maintainability
@@ -682,7 +678,7 @@ ComparisonSnapshot {
 - Competitors have <250 reviews (low volume)
 - Monthly comparison cadence is sufficient
 - Team is comfortable with semi-manual initial data collection
-- Simple shared password is acceptable security
+- Individual user accounts with role-based access are sufficient for security
 - Weekly data refresh is sufficient (not daily)
 - Team members have access to browser DevTools
 
@@ -692,7 +688,6 @@ ComparisonSnapshot {
 
 **Deferred to V2:**
 - Timeline/chart visualization of ranking changes
-- Individual user accounts (email/password)
 - Branded PDF exports with logo
 - Email alerts for ranking changes
 - Advanced filtering (by date range, rating range)
@@ -714,9 +709,9 @@ ComparisonSnapshot {
 ### 12.1 MVP Launch Criteria
 
 **Functional:**
-- [ ] User can log in with shared password
+- [ ] User can log in with username and password
 - [ ] User can set Stash + Lode as "our company" in settings
-- [ ] User can create competitor set with 11-20 companies
+- [ ] User can import 11-20 companies from review JSON files
 - [ ] User can tag companies with service type
 - [ ] User can extract reviews via browser console script
 - [ ] User can import review JSON files
@@ -772,8 +767,8 @@ ComparisonSnapshot {
 3. **PDF Branding:** Include Stash + Lode logo in V2?
    - **Decision:** Defer to V2
 
-4. **Multiple Competitor Sets:** How many sets will team realistically use?
-   - **Assumption:** 1-3 sets (e.g., "Storage", "Removals", "All Competitors")
+4. **Named Groups:** How many groups will team realistically use?
+   - **Assumption:** 1-3 groups (e.g., "Primary Competitors", "Melbourne Top 20") plus service-type filters
 
 ---
 
@@ -786,15 +781,16 @@ ComparisonSnapshot {
 - **Recent Trend:** Comparison of last 3 months' average vs overall average
 - **Review Velocity:** Number of new reviews per month
 - **Response Rate:** Percentage of reviews with business response
-- **Competitor Set:** Saved group of 11-20 companies to compare
+- **Company Group:** Named collection of companies for custom comparisons (e.g., "Primary Competitors")
 - **Comparison Snapshot:** Point-in-time view of rankings and metrics
 
 ### 15.2 Related Resources
 
-- Next.js Documentation: https://nextjs.org/docs
+- Express Documentation: https://expressjs.com/
+- Prisma Documentation: https://www.prisma.io/docs
 - Puppeteer Documentation: https://pptr.dev/
 - Tailwind CSS: https://tailwindcss.com/docs
-- Vercel Cron: https://vercel.com/docs/cron-jobs
+- Railway Documentation: https://docs.railway.com/
 
 ---
 
