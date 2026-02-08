@@ -7,6 +7,7 @@ import userRoutes from './routes/users.js';
 import companyRoutes from './routes/companies.js';
 import settingsRoutes from './routes/settings.js';
 import reviewRoutes from './routes/reviews.js';
+import groupRoutes from './routes/groups.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,6 +34,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/groups', groupRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
