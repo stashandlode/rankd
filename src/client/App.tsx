@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useSession } from './hooks/useAuth';
 import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
+import ImportPage from './pages/ImportPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,7 +31,7 @@ function AuthGate() {
       <Route element={<Layout />}>
         <Route path="/" element={<Placeholder title="Comparisons" />} />
         <Route path="/companies" element={<Placeholder title="Companies" />} />
-        <Route path="/import" element={<Placeholder title="Import" />} />
+        <Route path="/import" element={<ImportPage />} />
         <Route path="/snapshots" element={<Placeholder title="History" />} />
         <Route path="/users" element={<Placeholder title="Users" />} />
         <Route path="*" element={<Navigate to="/" replace />} />
