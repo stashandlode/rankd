@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import LoginPage from './pages/LoginPage';
 import ImportPage from './pages/ImportPage';
 import CompaniesPage from './pages/CompaniesPage';
+import ComparisonsPage from './pages/ComparisonsPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,7 +31,7 @@ function AuthGate() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<Placeholder title="Comparisons" />} />
+        <Route path="/" element={<ComparisonsPage />} />
         <Route path="/companies" element={<CompaniesPage />} />
         <Route path="/import" element={<ImportPage />} />
         <Route path="/snapshots" element={<Placeholder title="History" />} />
