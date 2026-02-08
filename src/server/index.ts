@@ -10,6 +10,9 @@ import reviewRoutes from './routes/reviews.js';
 import groupRoutes from './routes/groups.js';
 import comparisonRoutes from './routes/comparisons.js';
 import exportRoutes from './routes/export.js';
+import cronRoutes from './routes/cron.js';
+import cron from 'node-cron';
+import { runWeeklyRefresh } from './scraper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,6 +42,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/comparisons', comparisonRoutes);
 app.use('/api/export/pdf', exportRoutes);
+app.use('/api/cron', cronRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
@@ -48,6 +52,17 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.join(clientDir, 'index.html'));
   });
 }
+
+// Weekly scrape: Sunday at 00:00
+cron.schedule('0 0 * * 0', async () => {
+  console.log('Starting weekly refresh...');
+  try {
+    const results = await runWeeklyRefresh();
+    console.log('Weekly refresh complete:', results);
+  } catch (err) {
+    console.error('Weekly refresh failed:', err);
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
