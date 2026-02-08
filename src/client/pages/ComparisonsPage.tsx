@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   useReactTable,
@@ -162,6 +162,37 @@ export default function ComparisonsPage() {
     getSortedRowModel: getSortedRowModel(),
   });
 
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      const body: Record<string, unknown> = {};
+      if (groupId) body.groupId = groupId;
+      else body.filter = filter;
+
+      const res = await fetch('/api/export/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error('Export failed');
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `rankd-comparison-${new Date().toISOString().slice(0, 10)}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export error:', err);
+    } finally {
+      setExporting(false);
+    }
+  }, [filter, groupId]);
+
   function handleFilterChange(value: string) {
     if (value.startsWith('group:')) {
       setGroupId(parseInt(value.slice(6), 10));
@@ -199,6 +230,13 @@ export default function ComparisonsPage() {
               </optgroup>
             )}
           </select>
+          <button
+            onClick={handleExport}
+            disabled={exporting || rankings.length === 0}
+            className="bg-gray-800 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-gray-900 disabled:opacity-50"
+          >
+            {exporting ? 'Exporting...' : 'Export PDF'}
+          </button>
         </div>
       </div>
 
