@@ -7,6 +7,7 @@ import ImportPage from './pages/ImportPage';
 import CompaniesPage from './pages/CompaniesPage';
 import ComparisonsPage from './pages/ComparisonsPage';
 import SnapshotsPage from './pages/SnapshotsPage';
+import UsersPage from './pages/UsersPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,19 +37,10 @@ function AuthGate() {
         <Route path="/companies" element={<CompaniesPage />} />
         <Route path="/import" element={<ImportPage />} />
         <Route path="/snapshots" element={<SnapshotsPage />} />
-        <Route path="/users" element={<Placeholder title="Users" />} />
+        <Route path="/users" element={<UsersPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
-  );
-}
-
-function Placeholder({ title }: { title: string }) {
-  return (
-    <div>
-      <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-      <p className="text-gray-500 mt-2">Coming soon.</p>
-    </div>
   );
 }
 
