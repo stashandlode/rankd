@@ -15,9 +15,8 @@ const col = createColumnHelper<CompanyRanking>();
 
 function RatingBar({ dist }: { dist: CompanyRanking['ratingDistribution'] }) {
   const bars = [5, 4, 3, 2, 1] as const;
-  const tooltip = bars.map((s) => `${s}★: ${dist[s].count} (${dist[s].percent}%)`).join('\n');
   return (
-    <div className="flex flex-col gap-0.5 w-28" title={tooltip}>
+    <div className="relative group flex flex-col gap-0.5 w-28">
       {bars.map((star) => (
         <div key={star} className="flex items-center gap-1">
           <span className="text-[10px] text-gray-400 w-3 text-right">{star}</span>
@@ -29,6 +28,11 @@ function RatingBar({ dist }: { dist: CompanyRanking['ratingDistribution'] }) {
           </div>
         </div>
       ))}
+      <div className="hidden group-hover:block absolute left-full top-0 ml-2 z-10 bg-gray-800/90 text-white text-[11px] leading-[1.7] px-3 py-2 rounded-lg shadow-lg whitespace-nowrap">
+        {bars.map((s) => (
+          <div key={s}>{s}★: {dist[s].count} ({dist[s].percent}%)</div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -44,15 +48,15 @@ function TrendDisplay({ value }: { value: number }) {
 }
 
 const columns = [
-  col.accessor('rank', {
+  col.display({
+    id: 'rowNumber',
     header: '#',
     size: 50,
-    cell: ({ getValue, row }) => {
-      const rank = getValue();
-      const isTop3 = rank <= 3;
+    cell: ({ row }) => {
+      const n = row.index + 1;
       return (
-        <span className={`font-medium ${isTop3 ? 'text-amber-600' : 'text-gray-500'}`}>
-          {rank}
+        <span className={`font-medium ${n <= 3 ? 'text-amber-600' : 'text-gray-500'}`}>
+          {n}
         </span>
       );
     },
@@ -99,8 +103,8 @@ const columns = [
     cell: ({ getValue }) => <TrendDisplay value={getValue()} />,
   }),
   col.accessor('reviewVelocity', {
-    header: 'Velocity',
-    size: 90,
+    header: 'Velocity (3mo)',
+    size: 110,
     cell: ({ getValue }) => (
       <span className="text-gray-700 text-sm">{getValue()}/mo</span>
     ),
@@ -270,14 +274,16 @@ export default function ComparisonsPage() {
               ))}
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {table.getRowModel().rows.map((row) => (
+              {table.getRowModel().rows.map((row, visualIndex) => (
                 <tr
                   key={row.id}
                   className={row.original.isOurCompany ? 'bg-blue-50' : ''}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <td key={cell.id} className="px-4 py-3">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {cell.column.id === 'rowNumber'
+                        ? <span className={`font-medium ${visualIndex < 3 ? 'text-amber-600' : 'text-gray-500'}`}>{visualIndex + 1}</span>
+                        : flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
                 </tr>
