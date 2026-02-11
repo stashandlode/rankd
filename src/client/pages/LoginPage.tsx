@@ -14,7 +14,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-8">Rankd</h1>
+        <h1 className="text-2xl font-bold text-center text-gray-900 mb-8">Rank*d</h1>
         <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-4">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">

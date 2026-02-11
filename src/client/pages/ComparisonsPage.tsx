@@ -257,19 +257,22 @@ export default function ComparisonsPage() {
             <thead className="bg-gray-50">
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id}>
-                  {hg.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase cursor-pointer select-none"
-                      onClick={header.column.getToggleSortingHandler()}
-                      style={{ width: header.getSize() }}
-                    >
-                      <div className="flex items-center gap-1">
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        {{ asc: ' ↑', desc: ' ↓' }[header.column.getIsSorted() as string] ?? ''}
-                      </div>
-                    </th>
-                  ))}
+                  {hg.headers.map((header) => {
+                    const isName = header.column.id === 'name';
+                    return (
+                      <th
+                        key={header.id}
+                        className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase cursor-pointer select-none ${isName ? 'text-left' : 'text-center'}`}
+                        onClick={header.column.getToggleSortingHandler()}
+                        style={{ width: header.getSize() }}
+                      >
+                        <div className={`flex items-center gap-1 ${isName ? '' : 'justify-center'}`}>
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {{ asc: ' ↑', desc: ' ↓' }[header.column.getIsSorted() as string] ?? ''}
+                        </div>
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>
@@ -279,13 +282,16 @@ export default function ComparisonsPage() {
                   key={row.id}
                   className={row.original.isOurCompany ? 'bg-blue-50' : ''}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3">
-                      {cell.column.id === 'rowNumber'
-                        ? <span className={`font-medium ${visualIndex < 3 ? 'text-amber-600' : 'text-gray-500'}`}>{visualIndex + 1}</span>
-                        : flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const isName = cell.column.id === 'name';
+                    return (
+                      <td key={cell.id} className={`px-4 py-3 ${isName ? '' : 'text-center'}`}>
+                        {cell.column.id === 'rowNumber'
+                          ? <span className={`font-medium ${visualIndex < 3 ? 'text-amber-600' : 'text-gray-500'}`}>{visualIndex + 1}</span>
+                          : flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))}
             </tbody>
